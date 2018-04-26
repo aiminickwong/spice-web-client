@@ -34,7 +34,7 @@ must display the words "Powered by eyeos" and retain the original copyright noti
 -->
 <html>
     <head>
-        <title>eyeOS Spice Web Client</title>
+        <title>flexVDI WebPortal - powered by eyeOS</title>
         <meta charset="utf-8">
         <!-- libs -->
         <script src="lib/modernizr.js"></script>
@@ -117,12 +117,19 @@ must display the words "Powered by eyeos" and retain the original copyright noti
         <script src="keymaps/keymapes.js"></script>
         <script src="keymaps/keymapit.js"></script>
         <script src="keymaps/keymapus.js"></script>
+        <script src="keymaps/keymapfr.js"></script>
+        <script src="keymaps/keymapru.js"></script>
         <script src="keymaps/keymap.js"></script>
         <script src="application/WorkerProcess.js"></script>
+		<script src="flexvdi/inactivity.js"></script>
+        <script src="flexvdi/flexvdi.js"></script>
+        <script src="flexvdi/extwin.js"></script>
+        <script src="translation.js"></script>
         <script src="run.js"></script>
         <!-- end core -->
         <meta content="yes" name="apple-mobile-web-app-capable" />
 
+	<link rel="stylesheet" type="text/css" href="spice.css">
         <style type="text/css">
             body {
                 background-color:black;
@@ -170,6 +177,18 @@ must display the words "Powered by eyeos" and retain the original copyright noti
         </style>
     </head>
     <body>
+        <div id="login" onMouseOver="showMenuBar();" onMouseOut="hideMenuBar();">
+            <span class="logo"></span>
+            <div class="float-right">
+                <button id="uploadfile" onclick="showExtWin();">Subir Fichero</button>
+                <button id="menubarbutton" onclick="toggleMenuBar();">Ocultar Menu</button>
+                <button id="fullscreen" onclick="toggleFullScreen(document.body);">Pantalla Completa</button>
+                <button id="ctrlaltdel" onclick="sendCtrlAltDel();">Enviar Ctrl+Alt+Del</button>
+                <button id="showclientid" onclick="showClientID();">Mostrar Id</button>
+                <button id="close" onclick="showCloseDialog();">&nbsp</button>
+            </div>
+        </div>
+
         <div id="testVdi"></div>
         <input type="button" value="getStats" style="display:none;position:absolute;top:0px;right:0px;z-index:100;width:200px;height:200px;" id="getStats" />
         <input type="text" id="hiddeninput" style="display:none;opacity:0;font-size: 60px;color:transparent"/>
@@ -181,7 +200,81 @@ must display the words "Powered by eyeos" and retain the original copyright noti
         </div>
         <div id="integrationBenchmark"  style="" width=100% height=100%>
             <div class="closeButton" onclick="closeIntegrationBenchmark();">X</div>
-            <button id="launchWordButton"  type="button" onclick=startBenchmark()>Start benchmark</button>
+            <button id="launchWordButton"  type="button" onclick="startBenchmark();">Start benchmark</button>
         </div>
+
+        <div id="overlay"></div>
+        <div id="dialog-fs" class="overlay-dialog">
+            <div id="dialog_fs_text" class="overlay-text">
+                La aplicación solicita permiso para acceder a su Escritorio VDI en modo Pantalla Completa.
+            </div>
+            <div id="dialog-fs-input" class="overlay-input">
+                <button class="float-right tr-cancel" type="button" onclick="overlayAction(false)">Cancelar</button>
+                <button class="float-right tr-accept" type="button" onclick="overlayAction(true)">Aceptar</button>
+            </div>
+        </div>
+
+        <div id="dialog-close" class="overlay-dialog">
+            <div id="dialog_close_text" class="overlay-text">
+                Su sesión de VDI se cerrará. Por favor, asegúrese de que ha guardado sus cambios.
+            </div>
+            <div id="dialog-close-input" class="overlay-input">
+                <button class="float-right tr-cancel" type="button" onclick="closeAction(false)">Cancelar</button>
+                <button class="float-right tr-accept" type="button" onclick="closeAction(true)">Aceptar</button>
+            </div>
+        </div>
+        <div id="dialog-end" class="overlay-dialog">
+            <div id="dialog_end_text" class="overlay-text-end">
+                Su sesión de VDI ha finalizado. Por favor, cierre esta ventana.
+            </div>
+        </div>
+
+		<div id="inactivity-close" class="overlay-dialog">
+            <div id="inactivity_close_text" class="overlay-text">
+                Su sesión de VDI se cerrará por inactividad.
+            </div>
+            <div id="dialog-close-input" class="overlay-input">
+                <button class="float-right tr-cancel" type="button" onclick="stopInactivityCountdown()">Cancelar</button>
+            </div>
+        </div>
+        <div id="inactivity-end" class="overlay-dialog">
+            <div id="inactivity_end_text" class="overlay-text-end">
+                Su sesión de VDI ha sido cerrada por inactividad. Por favor, cierre esta ventana.
+            </div>
+        </div>
+
+        <div id="error" class="overlay-dialog">
+            <div id="error_text" class="overlay-text-end">
+                Error de conexión. Por favor, cierre esta ventana.
+            </div>
+        </div>
+
+        <div id="extwin">
+            <div id="extwin-title" class="extwin-title">
+                <button id="extwin-close" onclick="hideExtWin();">&nbsp</button>
+            </div>
+            <iframe src="extwin.html"></iframe>
+        </div>
+
+        <script>
+            var fsmode = read_cookie("fsmode");
+            if (fsmode == "true") {
+                document.getElementById("overlay").style.visibility = "visible";
+                document.getElementById("dialog-fs").style.visibility = "visible";
+            }
+
+            if (exturl == null || exturl == "") {
+                document.getElementById("uploadfile").style.visibility = "hidden";
+            }
+
+            if (extwidth != null && extwidth != "") {
+                document.getElementById("extwin").style.width = extwidth;
+            }
+
+            if (extheight != null && extheight != "") {
+                document.getElementById("extwin").style.height = extheight;
+            }
+			setInactivityTimer();
+        </script>
     </body>
 </html>

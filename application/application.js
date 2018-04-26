@@ -175,6 +175,7 @@ Application = $.spcExtend(wdi.DomainObject, {
         this.busConnection.addListener('busMessage', this.onBusMessage, this);
         this.busConnection.addListener('error', this.onDisconnect, this);
 		this.timeLapseDetector.addListener('timeLapseDetected', this.onTimeLapseDetected, this);
+        this.enableKeyboard();
     },
 
 	onChannelConnected: function(params) {
@@ -445,6 +446,138 @@ Application = $.spcExtend(wdi.DomainObject, {
         }
     },
 
+    sendCtrlAltDel: function() {
+        this.inputProcess.send([
+            "keydown",
+            [
+                {
+                    'generated': true,
+                    'type': "keydown",
+                    'keyCode': 17,
+                    'charCode': 0
+                }
+            ]
+
+        ], "keydown"); //ctrl down
+
+        this.inputProcess.send([
+            "keydown",
+            [
+                {
+                    'generated': true,
+                    'type': "keydown",
+                    'keyCode': 18,
+                    'charCode': 0
+                }
+            ]
+
+        ], "keydown"); //alt down
+
+        this.inputProcess.send([
+            "keydown",
+            [
+                {
+                    'generated': true,
+                    'type': "keydown",
+                    'keyCode': 46,
+                    'charCode': 0
+                }
+            ]
+
+        ], "keydown"); //del down
+
+        this.inputProcess.send([
+            "keyup",
+            [
+                {
+                    'generated': true,
+                    'type': "keyup",
+                    'keyCode': 46,
+                    'charCode': 0
+                }
+            ]
+
+        ], "keyup"); //del up
+
+        this.inputProcess.send([
+            "keyup",
+            [
+                {
+                    'generated': true,
+                    'type': "keyup",
+                    'keyCode': 18,
+                    'charCode': 0
+                }
+            ]
+
+        ], "keyup"); //alt up
+
+        this.inputProcess.send([
+            "keyup",
+            [
+                {
+                    'generated': true,
+                    'type': "keyup",
+                    'keyCode': 17,
+                    'charCode': 0
+                }
+            ]
+
+        ], "keyup"); //ctrl up
+    },
+
+    sendWinL: function() {
+        this.inputProcess.send([
+            "keydown",
+            [
+                {
+                    'generated': true,
+                    'type': "keydown",
+                    'keyCode': 91,
+                    'charCode': 0
+                }
+            ]
+
+        ], "keydown"); //win down
+        this.inputProcess.send([
+            "keydown",
+            [
+                {
+                    'generated': true,
+                    'type': "keydown",
+                    'keyCode': 76,
+                    'charCode': 0
+                }
+            ]
+
+        ], "keydown"); //L down
+
+        this.inputProcess.send([
+            "keyup",
+            [
+                {
+                    'generated': true,
+                    'type': "keyup",
+                    'keyCode': 76,
+                    'charCode': 0
+                }
+            ]
+
+        ], "keyup"); //L up
+
+        this.inputProcess.send([
+            "keyup",
+            [
+                {
+                    'generated': true,
+                    'type': "keyup",
+                    'keyCode': 91,
+                    'charCode': 0
+                }
+            ]
+
+        ], "keyup"); //win up
+    },
 	dispose: function () {
 		this.disableKeyboard();
 		this.disconnect();

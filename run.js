@@ -45,8 +45,31 @@ wdi.exceptionHandling = false; //disable "global try catch" to improve debugging
 
 wdi.IntegrationBenchmarkEnabled = false;// MS Excel loading time benchmark
 
+function translate() {
+	var langs = navigator.languages || [navigator.language || navigator.userLanguage];
+	for (var i in langs) {
+		var lang = langs[i];
+		if (typeof translations[lang] == 'undefined') {
+			lang = lang.substr(0, 2);
+			if (typeof translations[lang] == 'undefined') {
+				continue;
+			}
+		}
+		tr = translations[lang]
+		break;
+	}
+
+	for (var key in tr) {
+		console.log("Translate " + key)
+		$('#' + key).html(tr[key]);
+		$('.tr-' + key).html(tr[key]);
+	}
+}
+
 function start () {
 	var testSessionStarted = false;
+
+	translate();
 
 	$('#getStats').click(function() {
 		if (!testSessionStarted) {
@@ -121,6 +144,11 @@ function start () {
 				}, 3000);
 			}
 
+			login = document.getElementById("login");
+			if (login != null && login.className == "") {
+				height -= 40;
+			}
+
 			app.sendCommand('setResolution', {
 				'width': width,
 				'height': height
@@ -161,7 +189,7 @@ function start () {
 		} else if (action == 'timeLapseDetected') {
 			wdi.Debug.log('Detected time lapse of ', params, 'seconds');
 		} else if (action == 'error') {
-//                      alert('error');
+			closeSession();
 		} else if ("checkResults") {
 			var cnv = $('#canvas_0')[0];
 			var ctx = cnv.getContext('2d');
@@ -191,9 +219,18 @@ function start () {
 	};
 
 	$(window)['resize'](function () {
+		width = $(window).width();
+		height = $(window).height();
+
+		login = document.getElementById("login");
+		if (login != null) {
+			if (login.className == "") {
+				height -= 40;
+			}
+		}
 		app.sendCommand('setResolution', {
-			'width': $(window).width(),
-			'height': $(window).height()
+			'width': width,
+			'height': height
 		});
 	});
 
@@ -205,13 +242,18 @@ function start () {
 		jQuery.getScript("performanceTests/lib/testlauncher.js");
 		jQuery.getScript("performanceTests/tests/wordscroll.js");
 	}
+
+	var data = read_cookie("token")
+	console.log(data);
+	data = JSON.parse(data) || {};
+
 	app.run({
 		'callback': f,
 		'context': this,
-		'host': getURLParameter('host') || '10.11.12.100',
-		'port': getURLParameter('port') || 8000,
+		'host': data['spice_address'] || '',
+		'port': data['spice_port'] || 0,
 		'protocol': getURLParameter('protocol') || 'ws',
-		'token': '1q2w3e4r',
+		'token': data['spice_password'] || '',
 		'vmHost': getURLParameter('vmhost') || false,
 		'vmPort': getURLParameter('vmport') || false,
 		'useBus': false,
@@ -225,17 +267,21 @@ function start () {
         'heartbeatToken': 'heartbeat',
 		'heartbeatTimeout': 4000,//miliseconds
 		'busFileServerBaseUrl': 'https://10.11.12.200/fileserver/',
-		'layout': 'es',
+		'layout': data['layout'] || 'es',
 		'clientOffset': {
 			'x': 0,
-			'y': 0
+			'y': -40
 		},
 		'useWorkers': useWorkers,
 		'seamlessDesktopIntegration': false,
 		'externalClipboardHandling': false,
 		'disableClipboard': true,
 		'layer': document.getElementById('testVdi'),
-		'vmInfoToken': getURLParameter('vmInfoToken')
+		'vmInfoToken': getURLParameter('vmInfoToken'),
+		'canvasMargin': {
+			'x': 0,
+			'y': 40
+		},
 		//'language': navigator.language
 	});
 }

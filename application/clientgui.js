@@ -268,6 +268,7 @@ wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 		cnv.style.position = 'absolute';
 		cnv.style.top = this.canvasMarginY + 'px';
 		cnv.style.left = this.canvasMarginX + 'px';
+		cnv.style.zIndex = '0';
 
 		this.canvas[surface.surface_id] = cnv;
 		this.contexts[surface.surface_id] = cnv.getContext('2d');
@@ -280,7 +281,8 @@ wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 			var evLayer = $(this.eventLayer).css({
 				position: 'absolute',
 				top: this.canvasMarginY + 'px',
-				left: this.canvasMarginX + 'px'
+			        left: this.canvasMarginX + 'px',
+			        zIndex: '0'
 			})[0];
 
 			if(this.layer) {
@@ -291,7 +293,7 @@ wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 				document.body.appendChild(evLayer);
 			}
 			
-			this.enableKeyboard();
+			//this.enableKeyboard();
 		}
 
 		//this goes here?
@@ -533,13 +535,8 @@ wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 
 	showError: function(message) {
 		wdi.Debug.warn(message);
-		$('<div/>', {
-			id: 'error'
-		}).html(message).css({
-				'background-color': '#ff4141'
-			}).appendTo('body');
-
-		setTimeout("$('#error').remove()", 2000);
+		document.getElementById("overlay").style.visibility = "visible";
+		document.getElementById("error").style.visibility = "visible";
 	},
 
 	generateEvent: function(event, params) {
@@ -569,9 +566,12 @@ wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 	},
 
 	handleKey: function(e) {
+		console.log("Type: " + e.type + " keyCode: " + e.keyCode + " charCode: " + e.charCode);
+		document.getElementById("inputmanager").focus();
 		e.data[0].generateEvent.call(e.data[0], e.type, [e]);
 
-		if (wdi.Keymap.isInKeymap(e.keyCode) && e.type !== "keypress") {
+		if ((e.ctrlKey && !e.altKey) ||
+		    (wdi.Keymap.isInKeymap(e.keyCode) && e.type !== "keypress")) {
 			e.preventDefault();
 		}
 		//e.data[0].stuckKeysHandler.handleStuckKeys(e);

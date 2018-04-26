@@ -159,8 +159,8 @@ wdi.KeymapES = function() {
     keymapES[9]                 = 0x0F; // TAB
     //keymapES[20]                = 0x3A; // BLOQ.MAY. => see the charmap, all the capital letters and shift chars send a shift in their sequence
     keymapES[16]                = 0x2A; // LEFT SHIFT and RIGHT SHIFT
-	keymapES[91]                = 0x1D; // LEFT GUI (META, COMMAND) BINDED TO CONTROL
-	keymapES[17]                = 0x1D; // LEFT CONTROL and RIGHT CONTROL
+    keymapES[91]                = 0x15B; // LEFT GUI (META, COMMAND) BINDED TO CONTROL
+    keymapES[17]                = 0x1D; // LEFT CONTROL and RIGHT CONTROL
     //keymapES[32]                = 0x39; // SPACE => see the charmap
     keymapES[8]                 = 0x0E; // BACKSPACE
     keymapES[13]                = 0x1C; // ENTER
