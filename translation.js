@@ -33,7 +33,7 @@ var translations = {
         dialog_end_text: "Your VDI session has ended. Please, close this window.",
         inactivity_close_text: "Your VDI session will close due to inactivity in _ seconds",
         inactivity_end_text: "Your VDI session was closed due to inactivity. Please, close this window.",
-        error_text: "Conncection error. Please, close this window.",
+        error_text: "Connection error. Please, close this window.",
         show_id: "This browser's ID is: _",
         no_auto_fs: "This browser does not support automatic fullscreen switch. Please, press F11 to switch manually.",
     },
