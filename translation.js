@@ -17,6 +17,7 @@ var translations = {
         error_text: "Error de conexión. Por favor, cierre esta ventana.",
         show_id: "El identificador de este navegador es: _",
         no_auto_fs: "Este navegador no soporta el cambio automatico a pantalla completa. Por favor, pulse F11 para cambiar de forma manual.",
+        msg_click_to_capture: "Haga click dentro del escritorio virtual para capturar el ratón. Podrá liberar el ratón pulsando la tecla ESC.",
     },
     en: {
         uploadfile: "Upload File",
@@ -36,6 +37,7 @@ var translations = {
         error_text: "Connection error. Please, close this window.",
         show_id: "This browser's ID is: _",
         no_auto_fs: "This browser does not support automatic fullscreen switch. Please, press F11 to switch manually.",
+        msg_click_to_capture: "Click inside the virtual desktop to capture the mouse. Then press ESC to release pointer.",
     },
 	ru: {
         uploadfile: "Загрузить файл",
@@ -55,6 +57,7 @@ var translations = {
         error_text: "Ошибка подключения. Закройте это окно.",
         show_id: "ID этого браузера: _",
         no_auto_fs: "Этот браузер не поддерживает автоматическое переключение в полноэкранный режим. Нажмите F11 для переключения вручную.",
+        msg_click_to_capture: "Нажмите на виртуальный рабочий стол, чтобы захватить мышь. Затем нажмите ESC, чтобы освободить указатель.",
     },
 };
 

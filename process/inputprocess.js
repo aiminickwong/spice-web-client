@@ -23,17 +23,39 @@ wdi.InputProcess = $.spcExtend(wdi.EventObject.prototype, {
 		var packet, scanCodes, i;
 		setInactivityTimer();
 		if(type == 'mousemove') {
-			packet = new wdi.SpiceMessage({
-				messageType: wdi.SpiceVars.SPICE_MSGC_INPUTS_MOUSE_POSITION, 
-				channel: wdi.SpiceVars.SPICE_CHANNEL_INPUTS, 
-				args: new wdi.RedcMousePosition({
-					x:data[1][0]+wdi.VirtualMouse.hotspot.x,
-					y:data[1][1]+wdi.VirtualMouse.hotspot.y,
-					buttons_state:data[1][2],
-					display_id:0
-				})
-			});
-			this.spiceConnection.send(packet);
+			var mouse_mode = data[1][3]
+			if(mouse_mode == wdi.SpiceMouseModeTypes.SPICE_MOUSE_MODE_CLIENT) {
+				packet = new wdi.SpiceMessage({
+					messageType: wdi.SpiceVars.SPICE_MSGC_INPUTS_MOUSE_POSITION,
+					channel: wdi.SpiceVars.SPICE_CHANNEL_INPUTS,
+					args: new wdi.RedcMousePosition({
+						x:data[1][0]+wdi.VirtualMouse.hotspot.x,
+						y:data[1][1]+wdi.VirtualMouse.hotspot.y,
+						buttons_state:data[1][2],
+						display_id:0
+					})
+				});
+				this.spiceConnection.send(packet);
+			} else {
+				var dx = data[1][0];
+				var dy = data[1][1];
+
+				if (dx != 0 || dy != 0) {
+					packet = new wdi.SpiceMessage({
+						messageType: wdi.SpiceVars.SPICE_MSGC_INPUTS_MOUSE_MOTION,
+						channel: wdi.SpiceVars.SPICE_CHANNEL_INPUTS,
+						args: new wdi.RedcMouseMotion({
+							x:dx,
+							y:dy,
+							buttons_state:data[1][2]
+						})
+					});
+					this.spiceConnection.send(packet);
+				}
+
+				wdi.VirtualMouse.lastMousePosition.x += dx;
+				wdi.VirtualMouse.lastMousePosition.y += dy;
+			}
 		} else if(type == 'mousedown') {
 			packet = new wdi.SpiceMessage({
 				messageType: wdi.SpiceVars.SPICE_MSGC_INPUTS_MOUSE_PRESS, 

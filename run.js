@@ -247,6 +247,12 @@ function start () {
 	console.log(data);
 	data = JSON.parse(data) || {};
 
+	// Client Id only makes sense when called from flexVDI client
+	var hwaddress = read_cookie("hwaddress");
+	if (hwaddress == null) {
+		document.getElementById("showclientid").style.display = "none";
+	}
+
 	app.run({
 		'callback': f,
 		'context': this,

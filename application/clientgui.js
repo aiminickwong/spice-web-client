@@ -32,12 +32,21 @@ must display the words "Powered by eyeos" and retain the original copyright noti
 
 wdi.SPICE_INPUT_MOTION_ACK_BUNCH = 8;
 
+function lockChangeAlert () {
+	if (!document.pointerLockElement  &&
+		!document.mozPointerLockElement) {
+		  var e = $('#eventLayer')[0];
+		  e.triedCapturingPointer = false;
+	}
+}
+
 wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 	width: null,
 	height: null,
 	canvas: null,
 	ack_wait: 0,
-	mouse_mode: 0,
+	mouse_mode: wdi.SpiceMouseModeTypes.SPICE_MOUSE_MODE_SERVER,
+	triedCapturingPointer: false,
 	mouse_status: 0,
 	eventLayer: null,
 	counter: 0,
@@ -277,6 +286,7 @@ wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 			this.mainCanvas = surface.surface_id;
 
 			this.eventLayer = this.createEventLayer('eventLayer', surface.width, surface.height);
+			this.updateMousePointer()
 
 			var evLayer = $(this.eventLayer).css({
 				position: 'absolute',
@@ -350,12 +360,26 @@ wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 			eventLayer.attr('contentEditable', true);
 		}
 
+		eventLayer.requestPointerLock = eventLayer.requestPointerLock || eventLayer.mozRequestPointerLock;
+		document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
+
+		if ("onpointerlockchange" in document) {
+			document.addEventListener('pointerlockchange', lockChangeAlert, false);
+		  } else if ("onmozpointerlockchange" in document) {
+			document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
+		  }
+
 		eventLayer.bind('touchstart', function(event) {
 			event.preventDefault();
 			var touch = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
 			var x = touch.pageX;
 			var y = touch.pageY;
-			self.generateEvent.call(self, 'mousemove', [x + self.clientOffsetX, y + self.clientOffsetY, self.mouse_status]);
+			if (self.mouse_mode == wdi.SpiceMouseModeTypes.SPICE_MOUSE_MODE_CLIENT) {
+				self.generateEvent.call(self, 'mousemove', [x + self.clientOffsetX, y + self.clientOffsetY, self.mouse_status, self.mouse_mode]);
+			} else {
+				self.generateEvent.call(self, 'mousemove', [x + self.clientOffsetX  - wdi.VirtualMouse.lastMousePosition.x,
+					 y + self.clientOffsetY  - wdi.VirtualMouse.lastMousePosition.y, self.mouse_status, self.mouse_mode]);
+			}
 			if (event.originalEvent.touches.length === 1) {
 				self.enabledTouchMove = true;
 				self.launchRightClick.call(self, x, y);
@@ -384,8 +408,13 @@ wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 					self.launchMouseDown(); //fire again
 				}
 
+				if (self.mouse_mode == wdi.SpiceMouseModeTypes.SPICE_MOUSE_MODE_CLIENT) {
+					self.generateEvent.call(self, 'mousemove', [x + self.clientOffsetX, y + self.clientOffsetY - 80, self.mouse_status, self.mouse_mode]);
+				} else {
+					self.generateEvent.call(self, 'mousemove', [x + self.clientOffsetX - wdi.VirtualMouse.lastMousePosition.x, 
+						y + self.clientOffsetY - 80 - wdi.VirtualMouse.lastMousePosition.y, self.mouse_status, self.mouse_mode]);
+				}
 
-				self.generateEvent.call(self, 'mousemove', [x + self.clientOffsetX, y + self.clientOffsetY - 80, self.mouse_status]);
 				var pos = $(this).offset();
 				var myX = x - pos.left;
 				var myY = y - pos.top;
@@ -484,13 +513,42 @@ wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 
 				self.generateEvent.call(self, 'mousedown', button);
 				self.mouse_status = 1;
+				
+				
+				if (self.mouse_mode == wdi.SpiceMouseModeTypes.SPICE_MOUSE_MODE_SERVER) {
+					this.triedCapturingPointer = true;
+					app.clientGui.capturePointer();
+				}
 				event.preventDefault();
 			});
 
 			eventLayer['mousemove'](function(event) {
 				var x = event.pageX;
 				var y = event.pageY;
-				self.generateEvent.call(self, 'mousemove', [x + self.clientOffsetX, y + self.clientOffsetY, self.mouse_status]);
+				if (self.mouse_mode == wdi.SpiceMouseModeTypes.SPICE_MOUSE_MODE_CLIENT) {
+					self.generateEvent.call(self, 'mousemove', [x + self.clientOffsetX, y + self.clientOffsetY, self.mouse_status, self.mouse_mode]);
+				} else if (this.triedCapturingPointer) {
+					var e = event.originalEvent;
+					var dx = e.movementX  ||
+						e.mozMovementX    ||
+						e.webkitMovementX ||
+						0;
+					var dy = e.movementY  ||
+						e.mozMovementY    ||
+						e.webkitMovementY ||
+						0;
+					// Sometimes mousemove events with dx == dy == 0 are generated.
+					// For instance mouse click in chrome/windows.
+					if (!dx && !dy 
+						&& typeof e.movementX == 'undefined'
+						&& typeof e.mozMovementX == 'undefined'
+						&& typeof e.webkitMovementY == 'undefined'
+					) {
+						dx = x + self.clientOffsetX - wdi.VirtualMouse.lastMousePosition.x;
+						dy = y + self.clientOffsetY - wdi.VirtualMouse.lastMousePosition.y;
+					}
+					self.generateEvent.call(self, 'mousemove', [dx, dy, self.mouse_status, self.mouse_mode]);
+				}
 				event.preventDefault();
 			});
 
@@ -563,6 +621,26 @@ wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 
 	setMouseMode: function(mode) {
 		this.mouse_mode = mode;
+		if (mode == wdi.SpiceMouseModeTypes.SPICE_MOUSE_MODE_SERVER) {
+			this.triedCapturingPointer = false;
+			$.nok({
+				message: tr['msg_click_to_capture']
+				});
+		}
+		this.updateMousePointer();
+	},
+
+	updateMousePointer: function() {
+		if(this.eventLayer != null) {
+			if(this.mouse_mode == wdi.SpiceMouseModeTypes.SPICE_MOUSE_MODE_CLIENT) {
+				console.log("Setting cursor to default")
+				$(this.eventLayer).css('cursor', 'default');
+				this.releasePointer();
+			} else {
+				console.log("Setting cursor to none")
+				$(this.eventLayer).css('cursor', 'none');
+			}
+		}
 	},
 
 	handleKey: function(e) {
@@ -634,6 +712,19 @@ wdi.ClientGui = $.spcExtend(wdi.EventObject.prototype, {
 				backgroundColor: "black"
 			});
 		}*/
-	}
+	},
 
+	releasePointer() {
+		if (typeof document.exitPointerLock === "function") {
+			document.exitPointerLock();
+		}
+	},
+
+	capturePointer() {
+		if (!document.pointerLockElement
+			&& !document.mozPointerLockElement
+			&& typeof this.eventLayer.requestPointerLock === "function") {
+			this.eventLayer.requestPointerLock();
+		}
+	}
 });

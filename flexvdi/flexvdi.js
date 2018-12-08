@@ -74,7 +74,8 @@ function closeSession(inactivity) {
         document.getElementById("inactivity-end").style.visibility = "visible";
     } else {
         document.getElementById("dialog-end").style.visibility = "visible";
-	}
+    }
+    app.clientGui.releasePointer();
 }
 function showClientID() {
     var hwaddress = read_cookie("hwaddress");

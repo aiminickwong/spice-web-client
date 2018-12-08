@@ -16,9 +16,7 @@ wdi.MainProcess = $.spcExtend(wdi.EventObject.prototype, {
 				if(spiceMessage.args.agent_connected == 1) {
 					channel.fire('initAgent', spiceMessage.args.agent_tokens);
 				}
-				if (spiceMessage.args.current_mouse_mode == 1) {
-					channel.fire('mouseMode', spiceMessage.args.current_mouse_mode);
-				}
+				channel.fire('mouseMode', spiceMessage.args.current_mouse_mode);
 				// the mouse mode must be change both if we have agent or not
 				this.changeMouseMode();
 				break;
@@ -35,6 +33,9 @@ wdi.MainProcess = $.spcExtend(wdi.EventObject.prototype, {
 				break;
 			case wdi.SpiceVars.SPICE_MSG_MAIN_CHANNELS_LIST:
 				channel.fire('channelListAvailable', spiceMessage.args.channels);
+				break;
+			case wdi.SpiceVars.SPICE_MSG_MAIN_MOUSE_MODE:
+				channel.fire('mouseMode', spiceMessage.args.current_mode);
 				break;
 		}
 	},
